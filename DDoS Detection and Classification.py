@@ -193,7 +193,7 @@ plot_confusion_matrix(y_test, lr_pred, ['Normal', 'DDoS'], 'Logistic Regression 
 #-------------------------------------------------------------------------------------------------
 
 # Neural Network modelini oluşturur ve eğitir
-nn_model = MLPClassifier(hidden_layer_sizes=(10,), max_iter=10, random_state=42)
+nn_model = MLPClassifier(hidden_layer_sizes=(10,), max_iter=100, random_state=42)
 nn_model.fit(X_train, y_train)
 nn_pred = nn_model.predict(X_test)
 
@@ -212,6 +212,36 @@ print(f'Recall: {nn_recall:.4f}')
 
 # Neural Network için Confusion Matrix çizdirme
 plot_confusion_matrix(y_test, nn_pred, ['Normal', 'DDoS'], 'Neural Network Confusion Matrix')
+
+#-------------------------------------------------------------------------------------------------
+
+# Yapay Sinir Ağı (Artificial Neural Network) modelini oluşturur ve eğitir
+from sklearn.neural_network import MLPClassifier
+
+# Yapay Sinir Ağı modelini oluşturur
+ann_model = MLPClassifier(hidden_layer_sizes=(100,), max_iter=100, random_state=42)
+
+# Yapay Sinir Ağı modelini eğitir
+ann_model.fit(X_train, y_train)
+
+# Yapay Sinir Ağı modelinin test verileri üzerinde tahmin yapması
+ann_pred = ann_model.predict(X_test)
+
+# Yapay Sinir Ağı performans metriklerini hesaplar
+ann_accuracy = accuracy_score(y_test, ann_pred)
+ann_f1 = f1_score(y_test, ann_pred)
+ann_precision = precision_score(y_test, ann_pred)
+ann_recall = recall_score(y_test, ann_pred)
+
+# Sonuçları yazdırır
+print('\nArtificial Neural Network Metrics:')
+print(f'Accuracy: {ann_accuracy:.4f}')
+print(f'F1 Score: {ann_f1:.4f}')
+print(f'Precision: {ann_precision:.4f}')
+print(f'Recall: {ann_recall:.4f}')
+
+# Yapay Sinir Ağı için Confusion Matrix çizdirme
+plot_confusion_matrix(y_test, ann_pred, ['Normal', 'DDoS'], 'Artificial Neural Network Confusion Matrix')
 
 #-------------------------------------------------------------------------------------------------
 
@@ -242,6 +272,7 @@ print(f'Recall: {gb_recall:.4f}')
 
 # Gradient Boosting için Confusion Matrix çizdirme
 plot_confusion_matrix(y_test, gb_pred, ['Normal', 'DDoS'], 'Gradient Boosting Confusion Matrix')
+
 #-------------------------------------------------------------------------------------------------
 
 # K-Nearest Neighbors (KNN) modelini ekleyin
@@ -256,7 +287,12 @@ knn_proba = knn_model.predict_proba(X_test)
 knn_fpr, knn_tpr, _ = roc_curve(y_test, knn_proba[:, 1])
 knn_auc = auc(knn_fpr, knn_tpr)
 
+# KNN için Confusion Matrix çizdirme
+plot_confusion_matrix(y_test, knn_pred, ['Normal', 'DDoS'], 'K-Nearest Neighbors Confusion Matrix')
+plt.show()
+
 #-------------------------------------------------------------------------------------------------
+
 # Random Forest modeli için tahmin olasılıklarını hesaplar
 rf_proba = rf_model.predict_proba(X_test)
 
@@ -270,6 +306,11 @@ knn_proba = knn_model.predict_proba(X_test)
 
 # Neural Network modeli için tahmin olasılıklarını hesaplar
 nn_proba = nn_model.predict_proba(X_test)
+
+# Yapay Sinir Ağı için tahmin olasılıklarını hesaplar
+ann_proba = ann_model.predict_proba(X_test)
+ann_fpr, ann_tpr, _ = roc_curve(y_test, ann_proba[:, 1])
+ann_auc = auc(ann_fpr, ann_tpr)
 
 #-------------------------------------------------------------------------------------------------
 
@@ -287,6 +328,27 @@ plt.hist(gb_pred, bins=[-0.5, 0.5, 1.5], edgecolor='black', color='orange')
 plt.xticks([0, 1], labels=['Normal', 'DDoS'])
 plt.title('Tahmin Edilen Sınıflar')
 
+plt.show()
+
+#-------------------------------------------------------------------------------------------------
+
+# Performans metriklerini hesapla
+rf_metrics = [accuracy_score(y_test, rf_pred), precision_score(y_test, rf_pred), recall_score(y_test, rf_pred), f1_score(y_test, rf_pred)]
+lr_metrics = [accuracy_score(y_test, lr_pred), precision_score(y_test, lr_pred), recall_score(y_test, lr_pred), f1_score(y_test, lr_pred)]
+nn_metrics = [accuracy_score(y_test, nn_pred), precision_score(y_test, nn_pred), recall_score(y_test, nn_pred), f1_score(y_test, nn_pred)]
+gb_metrics = [accuracy_score(y_test, gb_pred), precision_score(y_test, gb_pred), recall_score(y_test, gb_pred), f1_score(y_test, gb_pred)]
+knn_metrics = [accuracy_score(y_test, knn_pred), precision_score(y_test, knn_pred), recall_score(y_test, knn_pred), f1_score(y_test, knn_pred)]
+
+# Metrik değerlerini bir dataframe içinde topla
+metrics_df = pd.DataFrame([rf_metrics, lr_metrics, nn_metrics, gb_metrics, knn_metrics],
+                           columns=['Accuracy', 'Precision', 'Recall', 'F1 Score'],
+                           index=['Random Forest', 'Logistic Regression', 'Neural Network', 'Gradient Boosting', 'K-Nearest Neighbors'])
+
+# Performans metriklerini görselleştir
+metrics_df.plot(kind='bar', figsize=(12, 8), colormap='viridis')
+plt.title('Performance Metrics for Different Classification Algorithms')
+plt.ylabel('Metric Value')
+plt.ylim(0, 1)  # Y ekseni 0 ile 1 arasında değerler alır
 plt.show()
 
 #-------------------------------------------------------------------------------------------------
@@ -316,6 +378,7 @@ plt.plot(lr_fpr, lr_tpr, label=f'Logistic Regression (AUC = {lr_auc:.2f})')
 plt.plot(nn_fpr, nn_tpr, label=f'Neural Network (AUC = {nn_auc:.2f})')
 plt.plot(gb_fpr, gb_tpr, label=f'Gradient Boosting (AUC = {gb_auc:.2f})')
 plt.plot(knn_fpr, knn_tpr, label=f'K-Nearest Neighbors (AUC = {knn_auc:.2f})')
+plt.plot(ann_fpr, ann_tpr, label=f'Artificial Neural Network (AUC = {ann_auc:.2f})')  # Yapay Sinir Ağı eklendi
 
 # Şans eseri model (Random Classifier) ROC eğrisi
 plt.plot([0, 1], [0, 1], linestyle='--', color='black', label='Random Classifier (AUC = 0.50)')
@@ -327,15 +390,7 @@ plt.legend()
 plt.grid()
 plt.show()
 
-#-------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
+#---------------------------------- SON ---------------------------------------------------------------
 
 
 
